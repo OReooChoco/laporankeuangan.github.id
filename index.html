@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Laporan Keuangan</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap" rel="stylesheet">
+<style>
+body{font-family:'Poppins',sans-serif;margin:0;background:linear-gradient(135deg,#667eea,#764ba2);color:#333}
+header{color:white;text-align:center;padding:20px;font-weight:700;font-size:22px}
+.container{max-width:900px;margin:20px auto;padding:20px}
+
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:15px;margin-bottom:20px}
+.card{background:rgba(255,255,255,0.9);padding:20px;border-radius:15px;backdrop-filter:blur(10px);box-shadow:0 8px 20px rgba(0,0,0,0.2);text-align:center}
+.card h3{margin:0;font-size:14px;color:#777}
+.card p{font-size:20px;font-weight:700;margin-top:10px}
+
+.form{background:white;padding:20px;border-radius:15px;box-shadow:0 8px 20px rgba(0,0,0,0.2)}
+input,select,button{padding:12px;margin:6px 0;width:100%;border-radius:10px;border:none;font-size:14px}
+input,select{background:#f1f3f6}
+button{background:linear-gradient(135deg,#00c6ff,#0072ff);color:white;font-weight:600;cursor:pointer;transition:0.2s}
+button:hover{transform:scale(1.03)}
+
+table{width:100%;margin-top:20px;border-collapse:collapse;background:white;border-radius:15px;overflow:hidden;box-shadow:0 8px 20px rgba(0,0,0,0.2)}
+th{background:#2c3e50;color:white}
+th,td{padding:12px;text-align:center}
+tr:nth-child(even){background:#f8f9fb}
+
+.income{color:#00b894;font-weight:600}
+.expense{color:#d63031;font-weight:600}
+
+</style>
+</head>
+<body>
+
+<header>💸 Laporan Keuangan</header>
+
+<div class="container">
+
+<div class="cards">
+<div class="card"><h3>Pemasukan Minggu Ini</h3><p id="income">Rp 0</p></div>
+<div class="card"><h3>Pengeluaran Minggu Ini</h3><p id="expense">Rp 0</p></div>
+<div class="card"><h3>Saldo Total</h3><p id="balance">Rp 0</p></div>
+</div>
+
+<div class="form">
+<h3>Tambah Transaksi</h3>
+<input type="text" id="name" placeholder="Nama Transaksi">
+<input type="date" id="date">
+<input type="text" id="amount" placeholder="Contoh: 100.000">
+<select id="type">
+<option value="income">Pemasukan</option>
+<option value="expense">Pengeluaran</option>
+</select>
+<button type="button" onclick="addTransaction()">Tambah</button>
+</div>
+
+<table>
+<thead>
+<tr>
+<th>Nama</th>
+<th>Tanggal</th>
+<th>Nominal</th>
+<th>Jenis</th>
+</tr>
+</thead>
+<tbody id="list"></tbody>
+</table>
+
+</div>
+
+<script>
+let data = [];
+
+function getWeek(dateStr){
+  const date = new Date(dateStr);
+  const firstDay = new Date(date.getFullYear(), 0, 1);
+  const pastDays = (date - firstDay) / 86400000;
+  return Math.ceil((pastDays + firstDay.getDay()+1)/7);
+}
+
+function getCurrentWeek(){
+  const now = new Date();
+  const firstDay = new Date(now.getFullYear(), 0, 1);
+  const pastDays = (now - firstDay) / 86400000;
+  return Math.ceil((pastDays + firstDay.getDay()+1)/7);
+}
+
+function addTransaction(){
+  const name = document.getElementById("name").value;
+  const date = document.getElementById("date").value;
+  let raw = document.getElementById("amount").value;
+  raw = raw.replace(/\./g, "");
+  const amount = parseFloat(raw);
+  const type = document.getElementById("type").value;
+
+  if(name === "" || date === "" || isNaN(amount)){
+    alert("Lengkapi data!");
+    return;
+  }
+
+  data.push({name, date, amount, type});
+  renderAll();
+  renderWeekly();
+
+  document.getElementById("name").value = "";
+  document.getElementById("date").value = "";
+  document.getElementById("amount").value = "";
+}
+
+function renderAll(){
+  let income = 0;
+  let expense = 0;
+  const list = document.getElementById("list");
+  list.innerHTML = "";
+
+  data.forEach(d=>{
+    if(d.type === "income") income += d.amount;
+    else expense += d.amount;
+
+    list.innerHTML += `
+    <tr>
+      <td>${d.name}</td>
+      <td>${d.date}</td>
+      <td class="${d.type}">Rp ${d.amount.toLocaleString('id-ID')}</td>
+      <td>${d.type}</td>
+    </tr>`;
+  });
+
+  const balance = income - expense;
+  document.getElementById("balance").innerText = "Rp " + balance.toLocaleString('id-ID');
+}
+
+function renderWeekly(){
+  const currentWeek = getCurrentWeek();
+  let income = 0;
+  let expense = 0;
+
+  data.forEach(d=>{
+    if(getWeek(d.date) === currentWeek){
+      if(d.type === "income") income += d.amount;
+      else expense += d.amount;
+    }
+  });
+
+  document.getElementById("income").innerText = "Rp " + income.toLocaleString('id-ID');
+  document.getElementById("expense").innerText = "Rp " + expense.toLocaleString('id-ID');
+}
+
+renderWeekly();
+</script>
+
+</body>
+</html>
